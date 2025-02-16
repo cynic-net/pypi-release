@@ -37,10 +37,15 @@ Release Process
 
 2. Build and check the release.
    - Change the current working directory to the project root.
-   - Run `build-release`, which will do a few checks of the configuration
-     (these are far from comprehensive), create/activate the `pactivate`
-     virtualenv, install `build` and `twine`, and run `pyproject-build`
-     and `twine check`.
+   - `build-release` assumes that the Python distribution module source
+     (i.e., the directory with `pyproject.toml`) is in the current working
+     directory. If it's in a subdirectory, provide that subdirectory name
+     _dir_ as a parameter: `build-release DIR`. (The virtualenv and output
+     files will still be under `.build/` under the CWD.)
+   - Run `build-release [DIR]`, which will do a few checks of the
+     configuration (these are far from comprehensive), create/activate the
+     `pactivate` virtualenv, install `build` and `twine`, and run
+     `pyproject-build` and `twine check`.
    - Fix anything broken.
 
 3. Upload the release

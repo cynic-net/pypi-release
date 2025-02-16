@@ -26,13 +26,16 @@ while [[ $# -gt 0 ]]; do case "$1" in
     -*)         die 2 "Unknown option: $1";;
     *)          break;;
 esac; done
-[[ $# -gt 0 ]] && die 2 "This program does not accept arguments."
+[[ $# -eq 0 ]] && packagedir='.'
+[[ $# -eq 1 ]] && { packagedir="$1"; shift; }
+[[ $# -eq 0 ]] || die 2 "Too many arguments."
 
 ####################################################################
 #   Configuration validation
 
-[[ -r pyproject.toml ]] || die 1 'pyproject.toml not found'
-if grep '^version = ' pyproject.toml | grep -q dev; then
+[[ -r $packagedir/pyproject.toml ]] \
+    || die 1 "$packagedir/pyproject.toml not found"
+if grep '^version = ' "$packagedir/pyproject.toml" | grep -q dev; then
     if $allow_dev; then
         warn  'pyproject.toml version number includes "dev"'
     else
@@ -45,14 +48,16 @@ fi
 ####################################################################
 #   Release process
 
-reldir=.build/release
+reldir=$(pwd -L)/.build/release
 
 echo '• pactivate'
 . ./pactivate -q
 pip -q install build twine
 rm -rf "$reldir"; mkdir -p "$reldir/dist"
+
 echo "• pyproject-build (output to $reldir/build.log)"
-pyproject-build --outdir "$reldir/dist/" >"$reldir/build.log"
+pyproject-build >"$reldir/build.log" --outdir "$reldir/dist/" "$packagedir"
+
 echo '• twine check'
 twine check --strict "$reldir/dist"/*
 if $upload; then
