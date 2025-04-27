@@ -6,18 +6,23 @@ distribution package and releasing it to [PyPI][] (the Python Package
 Index), whence it can be installed [pip] and similar tools.
 
 Requirements:
-- You must be using a `pyproject.toml` file to define your project
-  information.
+- You must be using a `pyproject.toml` file to define your project information.
 - You must have [`pactivate`] present in the same directory as
-  `pyproject.toml` to build a virtual environment. (You do not actually
-  need to be using pactivate for your project itself, though of course this
-  is recommended!)
+  `pyproject.toml` or in the parent directory. . (You do not actually need
+  to be using pactivate for your project itself, though of course this is
+  recommended!)
 
 Currently this is mostly a manual process, but a little bit of it is
 automated with the [`build-release`](./build-release) script in this repo.
 That script can be run from any location, but it assumes that you're in the
 root of your project (i.e., the directory containing the `pyproject.toml`
-and `pactivate` files).
+file).
+
+The release files will be built under `.build/release/` in the same
+directory as `pactivate`. This allows for repos with a single package or
+repos with multiple distribution packages, each in a direct subdirectory of
+the repo root. (In the latter case you will want to use a tag name that
+includes the package name, rather than just `v0.0.0`.)
 
 
 Release Process
@@ -37,15 +42,10 @@ Release Process
 
 2. Build and check the release.
    - Change the current working directory to the project root.
-   - `build-release` assumes that the Python distribution module source
-     (i.e., the directory with `pyproject.toml`) is in the current working
-     directory. If it's in a subdirectory, provide that subdirectory name
-     _dir_ as a parameter: `build-release DIR`. (The virtualenv and output
-     files will still be under `.build/` under the CWD.)
-   - Run `build-release [DIR]`, which will do a few checks of the
-     configuration (these are far from comprehensive), create/activate the
-     `pactivate` virtualenv, install `build` and `twine`, and run
-     `pyproject-build` and `twine check`.
+   - Run `build-release`, which will do a few checks of the configuration
+     (these are far from comprehensive), create/activate the `pactivate`
+     virtualenv, install `build` and `twine`, and run `pyproject-build`
+     and `twine check`.
    - Fix anything broken.
 
 3. Upload the release

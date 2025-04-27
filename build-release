@@ -26,16 +26,13 @@ while [[ $# -gt 0 ]]; do case "$1" in
     -*)         die 2 "Unknown option: $1";;
     *)          break;;
 esac; done
-[[ $# -eq 0 ]] && packagedir='.'
-[[ $# -eq 1 ]] && { packagedir="$1"; shift; }
-[[ $# -eq 0 ]] || die 2 "Too many arguments."
+[[ $# -gt 0 ]] && die 2 "This program does not accept arguments."
 
 ####################################################################
 #   Configuration validation
 
-[[ -r $packagedir/pyproject.toml ]] \
-    || die 1 "$packagedir/pyproject.toml not found"
-if grep '^version = ' "$packagedir/pyproject.toml" | grep -q dev; then
+[[ -r pyproject.toml ]] || die 1 'pyproject.toml not found'
+if grep '^version = ' pyproject.toml | grep -q dev; then
     if $allow_dev; then
         warn  'pyproject.toml version number includes "dev"'
     else
@@ -48,15 +45,31 @@ fi
 ####################################################################
 #   Release process
 
-reldir=$(pwd -L)/.build/release
-
 echo '• pactivate'
-. ./pactivate -q
-pip -q install build twine
-rm -rf "$reldir"; mkdir -p "$reldir/dist"
+if [[ -r pactivate ]]; then
+    reldir=.build/release
+    . ./pactivate -q
+elif [[ -r ../pactivate ]]; then
+    reldir=../.build/release
+    . ../pactivate -q
+else
+    die 3 "Cannot find pactivate or ../pactivate"
+fi
+pip -q install build twine toml
 
-echo "• pyproject-build (output to $reldir/build.log)"
-pyproject-build >"$reldir/build.log" --outdir "$reldir/dist/" "$packagedir"
+package_name=$(python3 -c '
+import toml;
+data = toml.load("pyproject.toml");
+print(data["project"]["name"])
+')
+logfile="$package_name-build.log"
+
+echo '• cleaning previous builds'
+mkdir -p "$reldir/dist"
+rm -f "$reldir/$package_name"* "$reldir/dist/$package_name"*
+
+echo "• pyproject-build (output to $reldir/$logfile)"
+pyproject-build --outdir "$reldir/dist/" >"$reldir/$logfile"
 
 echo '• twine check'
 twine check --strict "$reldir/dist"/*
@@ -64,4 +77,5 @@ if $upload; then
     echo '• twine upload'
     twine upload "$reldir/dist"/*
 fi
+
 echo '• OK'
