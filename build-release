@@ -68,8 +68,18 @@ echo '• cleaning previous builds'
 mkdir -p "$reldir/dist"
 rm -f "$reldir/$package_name"* "$reldir/dist/$package_name"*
 
-echo "• pyproject-build (output to $reldir/$logfile)"
-pyproject-build --outdir "$reldir/dist/" >"$reldir/$logfile"
+#   If both the sdist and wheel builds are done in a single run,
+#   `setuptools-scm` (if it's being used) will complain, 'ERROR
+#   setuptools_scm._file_finders.git listing git files failed - pretending
+#   there aren't any'. For some reason, just doing the two builds
+#   separately fixes this.[1] You'd think you'd need to turn off isolation
+#   as well[2], but apparently not.
+#     [2]: https://stackoverflow.com/a/79313619/107294
+#     [1]: https://github.com/pypa/setuptools-scm/issues/997#issuecomment-2612367874
+echo "• pyproject-build --sdist (output to $reldir/$logfile)"
+pyproject-build --sdist --outdir "$reldir/dist/" >"$reldir/$logfile"
+echo "• pyproject-build --wheel (output to $reldir/$logfile)"
+pyproject-build --wheel --outdir "$reldir/dist/" >"$reldir/$logfile"
 
 echo '• twine check'
 twine check --strict "$reldir/dist"/*
