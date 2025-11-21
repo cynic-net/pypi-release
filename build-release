@@ -19,9 +19,11 @@ warn() { echo 1>&2 "WARNING:" "$@"; }
 #   Command line parsing
 
 allow_dev=false
+suppress_license_warnings=false
 upload=false
 while [[ $# -gt 0 ]]; do case "$1" in
     -d)         shift; allow_dev=true;;
+    -L)         shift; suppress_license_warnings=true;;
     -u)         shift; upload=true;;
     -*)         die 2 "Unknown option: $1";;
     *)          break;;
@@ -67,6 +69,28 @@ logfile="$package_name-build.log"
 echo '• cleaning previous builds'
 mkdir -p "$reldir/dist"
 rm -f "$reldir/$package_name"* "$reldir/dist/$package_name"*
+
+if $suppress_license_warnings; then
+    #   This is an assist during the conversion period from old to new
+    #   license information format: see the README for details.
+    #
+    #   The warnings filters are `action:message:category:module:lineno`.
+    #   Action is `ignore` and the message is a regexp from the list below. For
+    #   the "category," which must be a class name that is a subclass of
+    #   `Warning`, we cannot use `SetuptoolsDeprecationWarning` because it's
+    #   not yet been imported when the interpreter starts up, so we use
+    #   `UserWarning` whence the setuptools warning inherits. There's a similar
+    #   issue with using `setuptools.warning` as the module, so we just don't
+    #   bother.
+    echo '• ━━━━━ suppressing license format warnings! ━━━━━'
+    ignored_deprecation_warning_messages=(\
+        'License classifiers are deprecated'
+        '`project.license` as a TOML table is deprecated'
+    )
+    ignored_deprecation_warnings=$(printf \
+        "ignore:%s:UserWarning," "${ignored_deprecation_warning_messages[@]}")
+    export PYTHONWARNINGS=${ignored_deprecation_warnings%,}  # remove trailing comma
+fi
 
 #   If both the sdist and wheel builds are done in a single run,
 #   `setuptools-scm` (if it's being used) will complain, 'ERROR

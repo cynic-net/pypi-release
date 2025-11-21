@@ -66,8 +66,44 @@ available" button. Pre-release versions can be installed from PyPI if asked
 for explicitly: `pip install 'dent@1.0.0.dev3'`.
 
 
+License Specification Formats
+-----------------------------
+
+[PEP 639] "Improving License Clarity with Better Package Metadata"
+introduced a new format for the license information metadata. The old
+`pypackage.toml` format is one of:
+
+    license = { file = 'LICENSE' }
+    license = { text = '…' }
+
+The [new `pyproject.toml` format][pyprj-lic] (not quite the same as the
+`METADATA` format in the PEP) uses an [SPDX license expression][spdx-expr]
+with tokens from the [SPDX license list][spdx-list], and an optional
+separate list of files that contain licenses.
+
+    license = "MIT AND (Apache-2.0 OR BSD-2-Clause)"
+    license-files = ["LICEN[CS]E*", "vendored/licenses/*.txt", "AUTHORS.md"]
+
+The new format requires `setuptools >= 69` in order to be able to build the
+package. (Note that this can cause tools like Tox, which don't just use but
+build the package under with versions of setuptools, to choke.)
+
+From about 2026-02 `setuptools` will stop supporting the old format and
+until then builds will emit a lot of warnings if you're using the old
+format. (PyPI seems likely to accept the old format for much longer.)
+
+To help during the conversion period, `build-release` takes a `-L` option
+which will suppress these warnings, allowing you to more easily see any
+other warnings that appear.
+
+
 
 <!-------------------------------------------------------------------->
 [PyPI]: https://pypi.org/
 [`pactivate`]: https://github.com/cynic-net/pactivate
 [pip]: https://pypi.org/project/pip/
+
+[PEP 639]: https://peps.python.org/pep-0639/
+[pyprj-lic]: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license
+[spdx-expr]: https://packaging.python.org/en/latest/glossary/#term-License-Expression
+[spdx-list]: https://spdx.org/licenses/
