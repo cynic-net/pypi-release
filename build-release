@@ -67,8 +67,18 @@ print(data["project"]["name"])
 logfile="$package_name-build.log"
 
 echo '■ cleaning previous builds'
+rm -rf "$reldir/"
+#   Old *.egg-info/ diretories can contain manifest information that causes
+#   files to be included in the package on this build that wouldn't happen
+#   on a fully clean build. (This was discovered by rebuilding a package
+#   after removing `setuptools-scm` and finding that the files that
+#   setuptools-scm had previously discovered were still being included.)
+#   This does not do a perfect job of removing these, since the source
+#   might not be under src/, but it's better than nothing. (There's also
+#   something else cached somewhere, but we've not found it yet.)
+rm -rf src/*.egg-info/
+
 mkdir -p "$reldir/dist"
-rm -f "$reldir/$package_name"* "$reldir/dist/$package_name"*
 
 if $suppress_license_warnings; then
     #   This is an assist during the conversion period from old to new
