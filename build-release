@@ -81,6 +81,7 @@ rm -rf src/*.egg-info/
 mkdir -p "$reldir/dist"
 
 if $suppress_license_warnings; then
+    echo '■ ━━━━━ suppressing license format warnings! ━━━━━'
     #   This is an assist during the conversion period from old to new
     #   license information format: see the README for details.
     #
@@ -92,7 +93,6 @@ if $suppress_license_warnings; then
     #   `UserWarning` whence the setuptools warning inherits. There's a similar
     #   issue with using `setuptools.warning` as the module, so we just don't
     #   bother.
-    echo '▲ ━━━━━ suppressing license format warnings! ━━━━━'
     ignored_deprecation_warning_messages=(\
         'License classifiers are deprecated'
         '`project.license` as a TOML table is deprecated'
