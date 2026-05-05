@@ -47,7 +47,7 @@ fi
 ####################################################################
 #   Release process
 
-echo '• pactivate'
+echo '■ pactivate'
 if [[ -r pactivate ]]; then
     reldir=.build/release
     . ./pactivate -q
@@ -66,7 +66,7 @@ print(data["project"]["name"])
 ')
 logfile="$package_name-build.log"
 
-echo '• cleaning previous builds'
+echo '■ cleaning previous builds'
 mkdir -p "$reldir/dist"
 rm -f "$reldir/$package_name"* "$reldir/dist/$package_name"*
 
@@ -82,7 +82,7 @@ if $suppress_license_warnings; then
     #   `UserWarning` whence the setuptools warning inherits. There's a similar
     #   issue with using `setuptools.warning` as the module, so we just don't
     #   bother.
-    echo '• ━━━━━ suppressing license format warnings! ━━━━━'
+    echo '▲ ━━━━━ suppressing license format warnings! ━━━━━'
     ignored_deprecation_warning_messages=(\
         'License classifiers are deprecated'
         '`project.license` as a TOML table is deprecated'
@@ -100,16 +100,16 @@ fi
 #   as well[2], but apparently not.
 #     [2]: https://stackoverflow.com/a/79313619/107294
 #     [1]: https://github.com/pypa/setuptools-scm/issues/997#issuecomment-2612367874
-echo "• pyproject-build --sdist (output to $reldir/$logfile)"
-pyproject-build --sdist --outdir "$reldir/dist/" >"$reldir/$logfile"
-echo "• pyproject-build --wheel (output to $reldir/$logfile)"
-pyproject-build --wheel --outdir "$reldir/dist/" >"$reldir/$logfile"
+echo "■ pyproject-build --sdist (output to $reldir/$logfile.sdist)"
+pyproject-build --sdist --outdir "$reldir/dist/" >"$reldir/$logfile.sdist"
+echo "■ pyproject-build --wheel (output to $reldir/$logfile.wheel)"
+pyproject-build --wheel --outdir "$reldir/dist/" >"$reldir/$logfile.wheel"
 
-echo '• twine check'
+echo '■ twine check'
 twine check --strict "$reldir/dist"/*
 if $upload; then
-    echo '• twine upload'
+    echo '▲ twine upload'
     twine upload "$reldir/dist"/*
 fi
 
-echo '• OK'
+echo '■ OK'
